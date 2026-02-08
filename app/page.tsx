@@ -1,23 +1,24 @@
 "use client";
-import { socket } from "@/lib/socket";
 import { useEffect } from "react";
+import { socket } from "@/lib/socket";
 
 export default function Home() {
   useEffect(() => {
     socket.connect();
 
+    const handleConnect = () => {
+      console.log("Connected:", socket.id);
+    };
+
+    socket.on("connect", handleConnect);
+
     socket.emit("hello", "Realtime is working!");
 
     return () => {
+      socket.off("connect", handleConnect); // ✅ remove listener
       socket.disconnect();
     };
   }, []);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between sm:items-start">
-        hello world
-      </main>
-    </div>
-  );
+  return <div>Realtime App</div>;
 }
