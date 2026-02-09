@@ -8,7 +8,7 @@ Built to demonstrate real-time communication, backend conflict handling, and int
 
 ## 🚀 Live Demo
 
-👉 [Add your deployed frontend link here]
+👉 https://live-tile-client.vercel.app
 
 ---
 
