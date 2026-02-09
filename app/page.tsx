@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
+import { motion } from "motion/react";
 
 export default function Home() {
   const [tiles, setTiles] = useState([]);
@@ -83,13 +84,13 @@ export default function Home() {
           gap-2
           justify-center
           w-full
-          max-w-[420px]
+          max-w-105
           sm:max-w-none
           grid-cols-[repeat(auto-fit,minmax(32px,1fr))]
         "
       >
         {tiles.map((tile) => (
-          <div
+          <motion.div
             key={tile.id}
             onClick={() => {
               if (!tile.owner_id) handleClick(tile);
@@ -101,12 +102,15 @@ export default function Home() {
               ${
                 tile.owner_id
                   ? "cursor-not-allowed opacity-60"
-                  : "cursor-pointer hover:scale-105"
+                  : "cursor-pointer"
               }
             `}
             style={{
               backgroundColor: tile.color || "#e5e7eb",
             }}
+            initial={{ scale: 1 }}
+            animate={{ scale: tile.owner_id ? [1, 1.25, 1] : 1 }}
+            transition={{ duration: 0.25 }}
           />
         ))}
       </div>
