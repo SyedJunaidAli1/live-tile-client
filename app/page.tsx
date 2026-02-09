@@ -1,7 +1,9 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 
 interface Tile {
   id: number;
@@ -11,7 +13,20 @@ interface Tile {
 }
 
 export default function Home() {
-  const [tiles, setTiles] = useState<Tile[]>([]);
+  const [liveTiles, setLiveTiles] = useState<Tile[]>([]);
+
+  const [userColor] = useState(() => {
+    if (typeof window === "undefined") return null;
+
+    let color = localStorage.getItem("user-color");
+
+    if (!color) {
+      color = `hsl(${Math.random() * 360},70%,60%)`;
+      localStorage.setItem("user-color", color);
+    }
+
+    return color;
+  });
 
   // Stable user id
   const [userId] = useState(() => {
@@ -27,7 +42,36 @@ export default function Home() {
     return id;
   });
 
-  // SOCKET LIFECYCLE
+  // ✅ Fetch tiles (initial snapshot only)
+  const fetchTiles = async (): Promise<Tile[]> => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SOCKET_API_ENDPOINT}/tiles`,
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch tiles");
+    }
+
+    return res.json();
+  };
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["tiles"],
+    queryFn: fetchTiles,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    // ⭐ CRITICAL for realtime apps
+    refetchOnWindowFocus: false,
+  });
+
+  // ✅ Sync query → live state ONCE
+  useEffect(() => {
+    if (data) {
+      setLiveTiles(data);
+    }
+  }, [data]);
+
+  // ✅ Socket lifecycle
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
@@ -37,43 +81,63 @@ export default function Home() {
       console.log("Connected:", socket.id);
     };
 
-    socket.on("connect", handleConnect);
+    const handleTileUpdate = (updatedTile: Tile) => {
+      setLiveTiles((prev) => {
+        const index = prev.findIndex((t) => t.id === updatedTile.id);
+        if (index === -1) return prev;
 
-    socket.on("tile_updated", (updatedTile: Tile) => {
-      setTiles((prev) =>
-        prev.map((tile) => (tile.id === updatedTile.id ? updatedTile : tile)),
-      );
-    });
+        const copy = [...prev];
+        copy[index] = updatedTile;
+        return copy;
+      });
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("tile_updated", handleTileUpdate);
 
     return () => {
       socket.off("connect", handleConnect);
-      socket.off("tile_updated");
+      socket.off("tile_updated", handleTileUpdate);
       socket.disconnect();
     };
   }, []);
 
-  // FETCH ONCE
-  useEffect(() => {
-    async function fetchTiles() {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SOCKET_API_ENDPOINT}/tiles`,
-      );
+  // ✅ Claim tile
+  const handleClick = (tile: Tile) => {
+    if (!socket.connected) return;
+    if (tile.owner_id || !userId || !userColor) return; // prevent double click
 
-      const data = await res.json();
-      setTiles(data);
-    }
+    // ✅ OPTIMISTIC UPDATE
+    setLiveTiles((prev) =>
+      prev.map((t) =>
+        t.id === tile.id
+          ? {
+              ...t,
+              owner_id: userId,
+              color: userColor,
+              claimed_at: new Date().toISOString(),
+            }
+          : t,
+      ),
+    );
 
-    fetchTiles();
-  }, []);
-
-  // CLICK HANDLER (VERY CLEAN)
-  const handleClick = (tile) => {
-    console.log("Clicked tile:", tile);
+    // ✅ tell server
     socket.emit("claim_tile", {
       tileId: tile.id,
       userId,
+      color: userColor,
     });
   };
+
+  // ✅ Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Please wait a second The server takes time to wake up since it's
+        deployed on the free plan of Render...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center py-6 px-2">
@@ -91,12 +155,12 @@ export default function Home() {
           gap-2
           justify-center
           w-full
-          max-w-105
+          max-w-[420px]
           sm:max-w-none
           grid-cols-[repeat(auto-fit,minmax(32px,1fr))]
         "
       >
-        {tiles.map((tile) => (
+        {liveTiles.map((tile) => (
           <motion.div
             key={tile.id}
             onClick={() => {
@@ -116,7 +180,7 @@ export default function Home() {
               backgroundColor: tile.color || "#e5e7eb",
             }}
             initial={{ scale: 1 }}
-            animate={{ scale: tile.owner_id ? [1, 1.25, 1] : 1 }}
+            animate={{ scale: tile.owner_id ? [1, 1.2, 1] : 1 }}
             transition={{ duration: 0.25 }}
           />
         ))}
