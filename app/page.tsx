@@ -3,8 +3,15 @@ import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import { motion } from "motion/react";
 
+interface Tile {
+  id: number;
+  owner_id: string | null;
+  color: string | null;
+  claimed_at: string | null;
+}
+
 export default function Home() {
-  const [tiles, setTiles] = useState([]);
+  const [tiles, setTiles] = useState<Tile[]>([]);
 
   // Stable user id
   const [userId] = useState(() => {
