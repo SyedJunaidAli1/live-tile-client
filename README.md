@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Live Tile Board
 
-## Getting Started
+A playful real-time web app where multiple users can claim tiles on a shared board and see updates instantly across all connected clients.
 
-First, run the development server:
+Built to demonstrate real-time communication, backend conflict handling, and interactive UI design.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🚀 Live Demo
+
+👉 [Add your deployed frontend link here]
+
+---
+
+## 🧠 Overview
+
+Live Tile Board is a multiplayer interactive grid that allows users to capture tiles in real time. When a tile is claimed, the update is broadcast instantly so every connected user sees the change without refreshing.
+
+The system is designed to safely handle simultaneous clicks by multiple users using atomic database updates.
+
+---
+
+## ✨ Features
+
+✅ Real-time tile updates using WebSockets  
+✅ Multiplayer interaction across browser sessions  
+✅ Conflict-safe tile claiming (prevents double ownership)  
+✅ Responsive grid layout for desktop and mobile  
+✅ Clean and minimal UI focused on usability
+
+---
+
+## ⚙️ Tech Stack
+
+**Frontend**
+
+- Next.js
+- React
+- Tailwind CSS
+- Socket.IO Client
+
+**Backend**
+
+- Node.js
+- Express
+- Socket.IO
+
+**Database**
+
+- PostgreSQL (Neon)
+
+---
+
+## 🔥 How Real-Time Sync Works
+
+1. A user clicks a tile.
+2. The client emits a WebSocket event to the server.
+3. The server attempts an atomic SQL update:
+
+```sql
+UPDATE tiles
+SET owner_id = $1
+WHERE id = $2
+AND owner_id IS NULL;
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
