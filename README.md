@@ -26,6 +26,7 @@ The system is designed to safely handle simultaneous clicks by multiple users us
 ✅ Multiplayer interaction across browser sessions  
 ✅ Conflict-safe tile claiming (prevents double ownership)  
 ✅ Responsive grid layout for desktop and mobile  
+✅ Tanstack Query For data fetching, caching and optimistic updates  
 ✅ Clean and minimal UI focused on usability
 
 ---
@@ -38,6 +39,7 @@ The system is designed to safely handle simultaneous clicks by multiple users us
 - React
 - Tailwind CSS
 - Socket.IO Client
+- Tanstack Query
 
 **Backend**
 
