@@ -39,7 +39,7 @@ export default function Home() {
 
     socket.on("connect", handleConnect);
 
-    socket.on("tile_updated", (updatedTile) => {
+    socket.on("tile_updated", (updatedTile: Tile) => {
       setTiles((prev) =>
         prev.map((tile) => (tile.id === updatedTile.id ? updatedTile : tile)),
       );
