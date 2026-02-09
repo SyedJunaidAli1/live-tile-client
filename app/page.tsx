@@ -68,17 +68,48 @@ export default function Home() {
   };
 
   return (
-    <div className="grid gap-2 grid-cols-30 px-2">
-      {tiles.map((tile) => (
-        <div
-          key={tile.id}
-          onClick={() => handleClick(tile)}
-          className="h-10 w-10 cursor-pointer"
-          style={{
-            backgroundColor: tile.color || "#ddd",
-          }}
-        />
-      ))}
+    <div className="min-h-screen flex flex-col items-center py-6 px-2">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center">
+        Live Tile Board
+      </h1>
+
+      <p className="text-gray-500 mb-4 text-center text-sm sm:text-base">
+        Claim a tile before someone else does 👀
+      </p>
+
+      <div
+        className="
+          grid
+          gap-2
+          justify-center
+          w-full
+          max-w-[420px]
+          sm:max-w-none
+          grid-cols-[repeat(auto-fit,minmax(32px,1fr))]
+        "
+      >
+        {tiles.map((tile) => (
+          <div
+            key={tile.id}
+            onClick={() => {
+              if (!tile.owner_id) handleClick(tile);
+            }}
+            className={`
+              aspect-square
+              rounded-md
+              transition-all duration-150
+              ${
+                tile.owner_id
+                  ? "cursor-not-allowed opacity-60"
+                  : "cursor-pointer hover:scale-105"
+              }
+            `}
+            style={{
+              backgroundColor: tile.color || "#e5e7eb",
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
